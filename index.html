@@ -138,7 +138,13 @@
 
         <ul class="home-social">
             <li>
-                <a href="https://github.com/lennarddaw/esp-wifi-tool"><i class="fa fa-github" aria-hidden="true"></i><span>Github</span></a>
+                <a href="https://github.com/lennarddaw"><i class="fa fa-github" aria-hidden="true"></i><span>Github Lennarddaw</span></a>
+            </li>
+            <li>
+                <a href="https://github.com/lennarddaw/DDoS-Website"><i class="fa fa-github" aria-hidden="true"></i><span>Github DDoS Website</span></a>
+            </li>
+            <li>
+                <a href="https://github.com/lennarddaw/esp-wifi-tool"><i class="fa fa-github" aria-hidden="true"></i><span>Github ESP Tool</span></a>
             </li>
             <li>
                 <a href="https://lennarddaw.com"><i class="fa fa-laptop" aria-hidden="true"></i><span>Lennarddaw</span></a>
@@ -479,6 +485,147 @@
 </section> <!-- end s-services -->
 
 
+<!-- 4-Way Handshake Überblick
+================================================== -->
+<section id="about" class="s-about">
+
+  <div class="row section-header has-bottom-sep" data-aos="fade-up">
+    <div class="col-full">
+      <h3 class="subhead subhead--dark">WPA2 4-Way Handshake</h3>
+      <h1 class="display-1 display-1--light">Schlüsselaustausch im Detail</h1>
+    </div>
+  </div> <!-- end section-header -->
+
+  <div class="row about-desc" data-aos="fade-up">
+    <div class="col-full">
+      <p>
+        Der 4-Way Handshake tauscht vier EAPOL-Nachrichten aus, um aus dem Pairwise Master Key (PMK) 
+        die Pairwise Transient Key (PTK) und aus dem Group Master Key (GMK) den Group Temporal Key (GTK) 
+        abzuleiten. ANonce und SNonce sorgen für Frische, MIC für Integrität.
+      </p>
+    </div>
+  </div> <!-- end about-desc -->
+
+  <div class="row about-stats stats block-1-4 block-m-1-2 block-mob-full" data-aos="fade-up">
+    <div class="col-block stats__col">
+      <div class="stats__count">100 ms</div>
+      <h5>Ø Handshake-Dauer</h5>
+    </div>
+    <div class="col-block stats__col">
+      <div class="stats__count">48 Bytes</div>
+      <h5>PTK-Schlüssellänge</h5>
+    </div>
+    <div class="col-block stats__col">
+      <div class="stats__count">16 Bytes</div>
+      <h5>GTK-Schlüssellänge</h5>
+    </div>
+    <div class="col-block stats__col">
+      <div class="stats__count">4</div>
+      <h5>Anzahl Nachrichten</h5>
+    </div>
+  </div> <!-- end about-stats -->
+
+  <div class="about__line"></div>
+
+</section> <!-- end s-about -->
+
+
+<!-- 4-Way Handshake Ablauf
+================================================== -->
+<section id="services" class="s-services">
+
+  <div class="row section-header has-bottom-sep" data-aos="fade-up">
+    <div class="col-full">
+      <h3 class="subhead">Handshake-Ablauf</h3>
+      <h1 class="display-2">Vier EAPOL-Nachrichten</h1>
+    </div>
+  </div> <!-- end section-header -->
+
+  <div class="row services-list block-1-2 block-tab-full">
+
+<!-- Nachricht 1 -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/message-1.png" alt="Message 1: ANonce vom AP" />
+  <div class="service-text">
+    <h3 class="h2">Message 1: ANonce vom AP</h3>
+    <p>
+      Der Access Point sendet eine EAPOL-Frame mit ANonce (random), damit Client und AP später 
+      die PTK berechnen: <code>PTK = PRF(PMK ∥ ANonce ∥ SNonce ∥ MAC_AP ∥ MAC_Client)</code>.
+    </p>
+    <ul>
+      <li><strong>Frame-Felder:</strong> Byte-Offsets für ANonce, Replay Counter, Key Information.</li>
+      <li><strong>Key Descriptor Version:</strong> Unterschied WPA2 vs. WPA3 im Key Info-Feld.</li>
+      <li><strong>Replay-Counter:</strong> AP erhöht Counter, um Replay-Angriffe zu verhindern.</li>
+      <li><strong>Wireshark-Filter:</strong> <code>eapol.key.nonce</code> und Replay-Counter anzeigen.</li>
+      <li><strong>Timeout:</strong> M1 wird nach ~100 ms ohne Antwort erneut gesendet.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Nachricht 2 -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/message-2.png" alt="Message 2: SNonce & MIC vom Client" />
+  <div class="service-text">
+    <h3 class="h2">Message 2: SNonce & MIC</h3>
+    <p>
+      Der Client generiert SNonce und berechnet PTK. Er sendet SNonce plus MIC, damit der AP 
+      die Nachricht integritätsgeprüft verifizieren und die PTK ebenfalls berechnen kann.
+    </p>
+    <ul>
+      <li><strong>SNonce-Quelle:</strong> Zufallszahlen aus <code>/dev/urandom</code> oder Hardware-RNG.</li>
+      <li><strong>MIC-Berechnung:</strong> 16 Byte mit KCK (Key Confirmation Key).</li>
+      <li><strong>Error-Handling:</strong> EAPOL-Error bei MIC-Fehler, erneute M1/M2 Sequenz.</li>
+      <li><strong>Wireshark-Ansicht:</strong> Detail-Pane zeigt „Key MIC“ und SNonce-Feld.</li>
+      <li><strong>Performance:</strong> Zusätzliche Latenz, solange Client auf M2-Ack wartet.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Nachricht 3 -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/message3.png" alt="Message 3: GTK & MIC vom AP" />
+  <div class="service-text">
+    <h3 class="h2">Message 3: GTK & MIC</h3>
+    <p>
+      Der AP leitet den Group Temporal Key (GTK) aus dem GMK ab und schickt ihn verschlüsselt 
+      plus MIC an den Client – jetzt sind alle Schlüssel für verschlüsselten Datenverkehr da.
+    </p>
+    <ul>
+      <li><strong>GTK-Verteilung:</strong> Group Key Handshake (GKH) mit Encrypted Key Data-Feld.</li>
+      <li><strong>Schlüssel­hierarchie:</strong> GMK → GTK via KDF (Länge, Nonce-Input).</li>
+      <li><strong>Integrity:</strong> KCK für MIC, KEK (Key Encryption Key) für GTK-Verschlüsselung.</li>
+      <li><strong>Multicast:</strong> GTK-Renewal bei Gruppenänderung, Clients passen sich automatisch an.</li>
+      <li><strong>Wireshark-Filter:</strong> <code>eapol.key.key_information.install==1</code> isoliert M3.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Nachricht 4 -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/4-WAY-handshake.png" alt="Message 4: Bestätigung vom Client" />
+  <div class="service-text">
+    <h3 class="h2">Message 4: Installation & Bestätigung</h3>
+    <p>
+      Der Client bestätigt den Empfang und die Installation von PTK/GTK mit einer EAPOL-ACK. 
+      Die kontrollierte Portöffnung erlaubt nun verschlüsselten Datenverkehr.
+    </p>
+    <ul>
+      <li><strong>Controlled Port:</strong> IEEE 802.1X öffnet Port für verschlüsselten Traffic.</li>
+      <li><strong>Authorization:</strong> Port wechselt zu „authorized“ bei erfolgreichem M4.</li>
+      <li><strong>Timeout & Retry:</strong> M3/M4 erneute Sendung nach ~200 ms ohne ACK.</li>
+      <li><strong>Verbindungstest:</strong> <code>iw dev wlan0 station dump</code> prüft Assoziationsstatus.</li>
+      <li><strong>PMF-Schutz:</strong> 802.11w blockiert ungeschützte ACK-Frames, wenn aktiviert.</li>
+    </ul>
+  </div>
+</div>
+
+
+  </div> <!-- end services-list -->
+
+</section> <!-- end s-services -->
+
+
+
 
     <!-- works
     ================================================== -->
@@ -488,8 +635,8 @@
                 
             <div class="row section-header has-bottom-sep light-sep" data-aos="fade-up">
                 <div class="col-full">
-                    <h3 class="subhead">Recent Works</h3>
-                    <h1 class="display-2 display-2--light">We love what we do, check out some of our latest works</h1>
+                    <h3 class="subhead">Der spannende Teil</h3>
+                    <h1 class="display-2 display-2--light">Mit dem ESP Tool ein WLAN angreifen</h1>
                 </div>
             </div> <!-- end section-header -->
 
