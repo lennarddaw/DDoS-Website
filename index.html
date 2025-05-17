@@ -358,24 +358,30 @@
     </div>
   </div> <!-- end about-desc -->
 
-  <div class="row about-stats stats block-1-4 block-m-1-2 block-mob-full" data-aos="fade-up">
-    <div class="col-block stats__col">
-      <div class="stats__count">1 000</div>
-      <h5>Ø Deauth-Frames/Sekunde</h5>
-    </div>
-    <div class="col-block stats__col">
-      <div class="stats__count">5</div>
-      <h5>Ø Zielgeräte pro Attacke</h5>
-    </div>
-    <div class="col-block stats__col">
-      <div class="stats__count">7</div>
-      <h5>Ø Handshakes eingefangen</h5>
-    </div>
-    <div class="col-block stats__col">
-      <div class="stats__count">30</div>
-      <h5>Ø Unterbrechungsdauer (Sek.)</h5>
-    </div>
-  </div> <!-- end about-stats -->
+<div class="row about-stats stats block-1-4 block-m-1-2 block-mob-full" data-aos="fade-up">
+
+  <div class="col-block stats__col">
+    <div class="stats__count">1500</div>
+    <h5>Frames/Sekunde <br> beim Flooding</h5>
+  </div>
+
+  <div class="col-block stats__col">
+    <div class="stats__count">80</div>
+    <h5>Handshake-Capture-Rate (%)<br> pro Deauth-Seq.</h5>
+  </div>
+
+  <div class="col-block stats__col">
+    <div class="stats__count">6</div>
+    <h5>Reconnect-Versuche<br> bis Erfolg</h5>
+  </div>
+
+  <div class="col-block stats__col">
+    <div class="stats__count">15</div>
+    <h5>Clients gleichzeitig<br> im Fokus</h5>
+  </div>
+
+</div> <!-- end about-stats -->
+
 
   <div class="about__line"></div>
 
@@ -395,54 +401,78 @@
 
   <div class="row services-list block-1-2 block-tab-full">
 
-    <!-- Schritt 1: Netzwerk-Discovery -->
-    <div class="col-block service-item" data-aos="fade-up">
-      <img class="service-img" src="images/Deauth-1-network.webp" alt="Netzwerk-Discovery und Target-Identifikation" />
-      <div class="service-text">
-        <h3 class="h2">1. Netzwerk-Discovery</h3>
-        <p>
-          Angreifer scannen verfügbare WLANs (beispielsweise mit <code>airodump-ng</code>), identifizieren SSID und
-          BSSID und überwachen die MAC-Adressen der verbundenen Clients.
-        </p>
-      </div>
-    </div>
+ <!-- Schritt 1: Netzwerk-Discovery -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/Deauth-1-network.webp" alt="Netzwerk-Discovery und Target-Identifikation" />
+  <div class="service-text">
+    <h3 class="h2">1. Netzwerk-Discovery</h3>
+    <p>
+      Angreifer scannen verfügbare WLANs (z. B. mit <code>airodump-ng</code>), identifizieren SSID/BSSID
+      und überwachen MAC-Adressen verbundener Clients.
+    </p>
+    <ul>
+      <li><strong>Passiv vs. Aktiv:</strong> Passive Beacon-Sammlung vs. aktive Probe-Requests (versteckte SSIDs).</li>
+      <li><strong>Kanal-Hopping:</strong> Automatisches Wechseln aller 2,4 GHz/5 GHz Kanäle (z. B. 1 s dwell pro Kanal).</li>
+      <li><strong>MAC-Randomisierung erkennen:</strong> Analyse von Vendor-OUI und Radiotap-Mustern.</li>
+      <li><strong>Timing-Statistiken:</strong> ∼14 s für Vollscan aller 14 Kanäle bei 1 s dwell time.</li>
+    </ul>
+  </div>
+</div>
 
-    <!-- Schritt 2: Frame-Erstellung & -Versand -->
-    <div class="col-block service-item" data-aos="fade-up">
-      <img class="service-img" src="images/Deauth-2-Frame_send.webp" alt="Erzeugen und Senden gefälschter Deauth-Frames" />
-      <div class="service-text">
-        <h3 class="h2">2. Frame-Erstellung &amp; -Versand</h3>
-        <p>
-          Für jedes Zielgerät werden Deauthentication- bzw. Disassociation-Frames mit gefälschter Absender-MAC
-          konstruiert und in hoher Frequenz an das Opfer gesendet – meist über <code>aireplay-ng --deauth</code>.
-        </p>
-      </div>
-    </div>
+<!-- Schritt 2: Frame-Erstellung & -Versand -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/Deauth-2-Frame_send.webp" alt="Erzeugen und Senden gefälschter Deauth-Frames" />
+  <div class="service-text">
+    <h3 class="h2">2. Frame-Erstellung &amp; -Versand</h3>
+    <p>
+      Gefälschte Deauth-/Disassociation-Frames mit spoofed Absender-MAC werden in hoher Frequenz verschickt 
+      (z. B. <code>aireplay-ng --deauth 0 -a <AP> -c <Client></code>).
+    </p>
+    <ul>
+      <li><strong>802.11-Frame-Aufbau:</strong> Frame Control, Duration, Addr1/2/3, Sequence Control, Reason Code.</li>
+      <li><strong>Reason Codes:</strong> Code 2 (Class 2 Frame), Code 7 (Unspecified) – Verhalten variiert.</li>
+      <li><strong>Scapy-Beispiel:</strong>  
+        <code>sendp(Dot11(type=0, subtype=12, addr1=dst, addr2=src, <br> addr3=src)/Dot11Deauth(reason=7), loop=1)</code>
+      </li>
+      <li><strong>Flood-Rate:</strong> 100–1000 Frames/s empfohlen, <code>--deauth 0</code> für Dauerflut.</li>
+    </ul>
+  </div>
+</div>
 
-    <!-- Schritt 3: Verbindungsabbruch & Reconnect -->
-    <div class="col-block service-item" data-aos="fade-up">
-      <img class="service-img" src="assets/images/deauth-reconnect.svg" alt="Gerät wird getrennt und versucht neu zu verbinden" />
-      <div class="service-text">
-        <h3 class="h2">3. Verbindungsabbruch &amp; Reconnect</h3>
-        <p>
-          Das Opfer interpretiert den Frame als legitime Anweisung und trennt sich. Automatisch startet es den
-          Wiederverbindungsprozess, der einen neuen 4-Way-Handshake initiiert.
-        </p>
-      </div>
-    </div>
+<!-- Schritt 3: Verbindungsabbruch & Reconnect -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/Deauth-3-Reconnect.webp" alt="Gerät wird getrennt und versucht neu zu verbinden" />
+  <div class="service-text">
+    <h3 class="h2">3. Verbindungsabbruch &amp; Reconnect</h3>
+    <p>
+      Das Opfer interpretiert den Deauth-Frame als legitimen Disconnect und startet automatisch den Wiederverbindungsprozess.
+    </p>
+    <ul>
+      <li><strong>Reconnect-Timer:</strong> iOS ∼1 s, Android/Windows 5–10 s; variiert je nach Client.</li>
+      <li><strong>4-Way-Handshake:</strong> M1–M4 Nonce-Austausch, PMKID-Option, MIC-Validierung.</li>
+      <li><strong>Protected Management Frames:</strong> 802.11w blockiert ungeschützte Deauths – am AP aktivieren.</li>
+      <li><strong>Probe-Request Flood:</strong> Alternative, um Client von AP wegzulocken und Reconnect zu erzwingen.</li>
+    </ul>
+  </div>
+</div>
 
-    <!-- Schritt 4: Handshake-Capture & Persistenz -->
-    <div class="col-block service-item" data-aos="fade-up">
-      <img class="service-img" src="assets/images/deauth-capture.svg" alt="Handshakes abfangen und Attacke aufrechterhalten" />
-      <div class="service-text">
-        <h3 class="h2">4. Handshake-Capture &amp; Persistenz</h3>
-        <p>
-          Während der Reconnect den 4-Way-Handshake überträgt, zeichnet der Angreifer die Frames auf
-          (<code>airodump-ng --wps</code>). Durch fortlaufendes Deauth-Flooding wird das Gerät
-          dauerhaft vom Netz getrennt, bis der Angreifer genug Handshakes gesammelt hat.
-        </p>
-      </div>
-    </div>
+<!-- Schritt 4: Handshake-Capture & Persistenz -->
+<div class="col-block service-item" data-aos="fade-up">
+  <img class="service-img" src="images/Deauth-4-Capture_Handshake.webp" alt="Handshakes abfangen und Attacke aufrechterhalten" />
+  <div class="service-text">
+    <h3 class="h2">4. Handshake-Capture &amp; Persistenz</h3>
+    <p>
+      Während des Reconnects wird der 4-Way-Handshake aufgezeichnet (<code>airodump-ng --wps</code>), fortlaufend geflutet bis ausreichende Samples.
+    </p>
+    <ul>
+      <li><strong>Dateiformate & Tools:</strong> .cap/.pcapng, Filter in Wireshark: <code>wlan.fc.type_subtype==0x0b</code>, <code>wlan.handshake</code>.</li>
+      <li><strong>Offline-Cracking:</strong> Hashcat Mode 2500 (4-Way) oder 22000 (PMKID), ∼500 kH/s auf GPU.</li>
+      <li><strong>PMKID-Extraction:</strong> Nehmt PMKID direkt aus Beacon/Probe-Responses, kein Deauth nötig.</li>
+      <li><strong>Persistenz:</strong> Re-Deauth alle 30 s, bis gewünschte Anzahl Handshakes erreicht ist.</li>
+    </ul>
+  </div>
+</div>
+
 
   </div> <!-- end services-list -->
 
